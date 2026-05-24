@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡nom⚡</title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body{
+            background:#0b111e;
+            color:white;
+            font-family:sans-serif;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- MENU -->
+    <div id="menu-container" class="w-full max-w-2xl mt-10 text-center">
+
+        <h1 class="text-3xl font-black text-blue-400 mb-6">
+            ⚡ NOM ⚡
+        </h1>
+
+        <div class="grid grid-cols-2 gap-4">
+
+            <button onclick="startSupervivencia('310','60')"
+                class="bg-blue-800 hover:bg-blue-700 p-4 rounded-xl font-bold">
+                310 - 60°C
+            </button>
+
+            <button onclick="startSupervivencia('310','75')"
+                class="bg-blue-700 hover:bg-blue-600 p-4 rounded-xl font-bold">
+                310 - 75°C
+            </button>
+
+            <button onclick="startSupervivencia('310','90')"
+                class="bg-blue-600 hover:bg-blue-500 p-4 rounded-xl font-bold">
+                310 - 90°C
+            </button>
+
+            <button onclick="startSupervivencia('250','Tierra')"
+                class="bg-indigo-700 hover:bg-indigo-600 p-4 rounded-xl font-bold">
+                Tabla 250
+            </button>
+
+        </div>
+    </div>
+
+
+    <!-- JUEGO -->
+    <main id="game-container"
+        class="hidden w-full max-w-3xl mt-4 bg-slate-900/40 p-6 rounded-2xl shadow-2xl border border-slate-800">
+
+        <!-- TOP -->
+        <div class="flex justify-between items-center mb-6">
+
+            <h1 id="game-title" class="font-bold text-slate-200">
+                --
+            </h1>
+
+            <div class="flex gap-3 items-center">
+
+                <!-- SCORE -->
+                <div class="bg-green-900 px-4 py-2 rounded-lg font-bold text-green-300">
+                    ✅ Aciertos:
+                    <span id="score">0</span>
+                </div>
+
+                <!-- MENU -->
+                <button onclick="backToMenu()"
+                    class="bg-slate-800 hover:bg-slate-700 py-2 px-4 rounded-lg text-xs font-bold">
+                    ⬅️ Menú
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- TARGET -->
+        <div class="bg-slate-950/60 p-6 mb-6 rounded-xl border border-slate-800 text-center">
+
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                CORRIENTE A BUSCAR:
+            </div>
+
+            <div id="target-value"
+                class="text-5xl font-black text-blue-500 my-2">
+                --
+            </div>
+
+            <div id="target-condition"
+                class="text-sm font-bold text-slate-300">
+                --
+            </div>
+
+        </div>
+
+
+        <!-- BOTONES -->
+        <div id="matrix-container"
+            class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-6">
+        </div>
+
+
+        <!-- FEEDBACK -->
+        <div id="fast-feedback"
+            class="hidden p-3 rounded-xl text-center font-bold">
+        </div>
+
+    </main>
+
+
+
+<script>
+
+    // =========================
+    // TABLA 310
+    // =========================
+
+    const data310 = [
+
+        { c:"14 AWG", "60":15, "75":20, "90":25 },
+        { c:"12 AWG", "60":20, "75":25, "90":30 },
+        { c:"10 AWG", "60":30, "75":35, "90":40 },
+        { c:"8 AWG", "60":40, "75":50, "90":55 },
+        { c:"6 AWG", "60":55, "75":65, "90":75 },
+        { c:"4 AWG", "60":70, "75":85, "90":95 },
+        { c:"3 AWG", "60":85, "75":100, "90":110 },
+        { c:"2 AWG", "60":95, "75":115, "90":130 },
+        { c:"1 AWG", "60":110, "75":130, "90":145 },
+        { c:"1/0 AWG", "60":125, "75":150, "90":170 },
+        { c:"2/0 AWG", "60":145, "75":175, "90":195 },
+        { c:"3/0 AWG", "60":165, "75":200, "90":225 },
+        { c:"4/0 AWG", "60":195, "75":230, "90":260 },
+        { c:"250 kcmil", "60":215, "75":255, "90":290 },
+        { c:"300 kcmil", "60":240, "75":285, "90":320 },
+        { c:"350 kcmil", "60":260, "75":310, "90":350 },
+        { c:"400 kcmil", "60":280, "75":335, "90":380 },
+        { c:"500 kcmil", "60":320, "75":380, "90":430 }
+
+    ];
+
+
+    // =========================
+    // TABLA 250
+    // =========================
+
+    const data250 = [
+
+        { c:"14 AWG", v:15 },
+        { c:"12 AWG", v:20 },
+        { c:"10 AWG", v:60 },
+        { c:"8 AWG", v:100 },
+        { c:"6 AWG", v:200 },
+        { c:"4 AWG", v:300 },
+        { c:"3 AWG", v:400 },
+        { c:"2 AWG", v:500 },
+        { c:"1 AWG", v:600 },
+        { c:"1/0 AWG", v:800 },
+        { c:"2/0 AWG", v:1000 },
+        { c:"3/0 AWG", v:1200 },
+        { c:"4/0 AWG", v:1600 },
+        { c:"250 kcmil", v:2000 },
+        { c:"350 kcmil", v:3000 },
+        { c:"400 kcmil", v:4000 },
+        { c:"500 kcmil", v:6000 }
+
+    ];
+
+
+    // =========================
+    // VARIABLES
+    // =========================
+
+    let mode = "";
+    let temp = "";
+    let currentObj = null;
+    let lock = false;
+
+    let aciertos = 0;
+
+
+    // =========================
+    // INICIAR
+    // =========================
+
+    function startSupervivencia(m,t){
+
+        mode = m;
+        temp = t;
+
+        document.getElementById("menu-container")
+            .classList.add("hidden");
+
+        document.getElementById("game-container")
+            .classList.remove("hidden");
+
+        document.getElementById("game-title").innerText =
+            mode === "310"
+            ? "Tabla 310 (" + temp + "°C)"
+            : "Tabla 250.122";
+
+        renderButtons();
+
+        generar();
+
+    }
+
+
+
+    // =========================
+    // VOLVER
+    // =========================
+
+    function backToMenu(){
+
+        aciertos = 0;
+
+        document.getElementById("score").innerText = aciertos;
+
+        document.getElementById("game-container")
+            .classList.add("hidden");
+
+        document.getElementById("menu-container")
+            .classList.remove("hidden");
+
+    }
+
+
+
+    // =========================
+    // CREAR BOTONES
+    // =========================
+
+    function renderButtons(){
+
+        const cont = document.getElementById("matrix-container");
+
+        cont.innerHTML = "";
+
+        const list = mode === "310"
+            ? data310
+            : data250;
+
+        list.forEach(item => {
+
+            const b = document.createElement("button");
+
+            b.className =
+                "bg-slate-800 hover:bg-slate-700 py-3 rounded-lg text-[10px] font-bold";
+
+            b.innerText = item.c;
+
+            b.onclick = () => check(item.c);
+
+            cont.appendChild(b);
+
+        });
+
+    }
+
+
+
+    // =========================
+    // GENERAR RETO
+    // =========================
+
+    function generar(){
+
+        lock = false;
+
+        document.getElementById("fast-feedback")
+            .classList.add("hidden");
+
+        const list = mode === "310"
+            ? data310
+            : data250;
+
+        currentObj =
+            list[Math.floor(Math.random() * list.length)];
+
+        document.getElementById("target-value").innerText =
+            (mode === "310"
+            ? currentObj[temp]
+            : currentObj.v) + " A";
+
+        document.getElementById("target-condition").innerText =
+            mode === "310"
+            ? temp + "°C"
+            : "Tierra";
+
+    }
+
+
+
+    // =========================
+    // VALIDAR
+    // =========================
+
+    function check(sel){
+
+        if(lock) return;
+
+        const targetVal =
+            mode === "310"
+            ? currentObj[temp]
+            : currentObj.v;
+
+
+        // RESPUESTA CORRECTA
+        const correct =
+            mode === "310"
+            ? data310.find(i => i[temp] >= targetVal).c
+            : data250.find(i => i.v >= targetVal).c;
+
+
+        // SI ES CORRECTA
+        if(sel === correct){
+
+            aciertos++;
+
+            document.getElementById("score").innerText =
+                aciertos;
+
+            document.getElementById("fast-feedback")
+                .className =
+                "p-3 bg-green-950/40 border border-green-900 rounded-xl text-green-300 text-center font-bold";
+
+            document.getElementById("fast-feedback")
+                .innerHTML =
+                "✅ Correcto";
+
+            document.getElementById("fast-feedback")
+                .classList.remove("hidden");
+
+            setTimeout(generar, 800);
+
+        }
+
+        // SI ES INCORRECTA
+        else{
+
+            lock = true;
+
+            document.getElementById("fast-feedback")
+                .className =
+                "p-3 bg-rose-950/40 border border-rose-900 rounded-xl text-rose-200 text-center font-bold";
+
+            document.getElementById("fast-feedback")
+                .innerHTML =
+                "❌ Error. El calibre mínimo era: <b>"
+                + correct +
+                "</b>";
+
+            document.getElementById("fast-feedback")
+                .classList.remove("hidden");
+
+            setTimeout(generar, 2000);
+
+        }
+
+    }
+
+</script>
+
+</body>
+</html>
